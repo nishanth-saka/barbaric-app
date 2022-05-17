@@ -6,52 +6,50 @@ import _ from 'lodash';
 
 import HomeCard from './HomeCard';
 import FlatLisStyles from '../styles/index';
-import { getPageList } from '../redux/actions/pageListActions';
+import { getPageList, setRowIndex } from '../redux/actions/pageListActions';
 
-const localArray = [];
-const itemHeight = 270;
-const originalRenderItem = ({ item, index }) => {
-    
-    // let _existingItemIndex = _.findIndex(localArray, {index});
-    
-    // localArray.push({
-    //     index,
-    //     item,
-    //     renderItem: <HomeCard item={item}/>
-    // });
-
-    // if(_existingItemIndex > -1){
-    //     return localArray[_existingItemIndex]?.renderItem;
-    // }
-
+const ITEM_HEIGHT = 270;
+const originalRenderItem = ({ item, index }) => {      
     return (        
-        <HomeCard item={item} key={`${index}`}/>
+        <HomeCard 
+            item={item} 
+            key={`${index}`} 
+            index={index}
+            />
       )
 };
 const FlatListView = (props) => {
     const {pageList, pageNumber} = props;
+    
     let _flatListRef = null;
 
-    
-    const [inViewPort, setInViewPort] = useState(0)
-    const [newPageList, setPageList] = useState([])
-    const [viewableItems, setViewableItems] = useState([])
-
     const viewabilityConfig = useRef({
-      itemVisiblePercentThreshold: 50,
-      waitForInteraction: true,
+      itemVisiblePercentThreshold: 3,
+      waitForInteraction: false,
       minimumViewTime: 5,
     })
     
     const onViewableItemsChanged = useRef(({ viewableItems, changed }) => {
-      if (changed && changed.length > 0) {
-        setInViewPort(changed[0].index);        
-      }
+        let _currentViewIndex = _.last(viewableItems)?.index;
+        if(_currentViewIndex){
+            setTimeout(() => {
+                props.setRowIndex(_currentViewIndex);
+            }, 300);
+        }
+        console.log("Visible items are", _.last(viewableItems)?.index);
+
     })
 
     const renderItem = useCallback(({item, index}) => {
         return originalRenderItem({item, index});
     } , [pageList]);
+
+    const handleScrollView = (e) => {
+        let offset = e.nativeEvent.contentOffset.y;
+        // let viewSize = e.nativeEvent.layoutMeasurement;
+        let index = parseInt(offset / (ITEM_HEIGHT));   // your cell height                        
+        console.log(`handleScrollView: ${index}`);
+       }
 
     return (
         <SafeAreaView style={FlatLisStyles.container}>
@@ -60,17 +58,20 @@ const FlatListView = (props) => {
                     onViewableItemsChanged={onViewableItemsChanged.current}
                     viewabilityConfig={viewabilityConfig.current}
                     windowSize={10}
-                    removeClippedSubviews={false}
-                    maxToRenderPerBatch={3}
-                    initialNumToRender={10}
+                    removeClippedSubviews={true}
+                    maxToRenderPerBatch={10}
+                    initialNumToRender={3}
                     keyExtractor={(item, index) => `${item.id}${index}`}
                     data={pageList}
                     renderItem={renderItem}
                     nestedScrollEnabled={true}
-                    onEndReachedThreshold={0.4}
+                    onEndReachedThreshold={0.5}
+                    disableIntervalMomentum={true}
                     onEndReached={() => {
                         props.getPageList({pageNumber : pageNumber + 1});
                     }}
+                    
+                    onScrollEndDrag={handleScrollView}        
                     />
         </SafeAreaView>
     )
@@ -79,6 +80,8 @@ const FlatListView = (props) => {
 function mapDispatchToProps(dispatch) {
     return {
         getPageList: params =>dispatch(getPageList(params)),
+        setPageList: params =>dispatch(setPageList(params)),
+        setRowIndex: params =>dispatch(setRowIndex(params)),
     }
 }
 

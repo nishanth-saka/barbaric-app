@@ -1,4 +1,5 @@
 const GET_PAGE_LIST = 'GET_PAGE_LIST';
+const SET_FOCUS_INDEX = 'SET_FOCUS_INDEX';
 const SET_APP_LOADER = 'SET_APP_LOADER';
 const HOME_SCREEN = 'HomeScreen';
 const CURRENT_PAGE_NUMBER = 11;
@@ -13,4 +14,5 @@ module.exports = {
     CURRENT_PAGE_NUMBER,
     IMAGE_TYPE,
     VIDEO_TYPE,
+    SET_FOCUS_INDEX,
 }

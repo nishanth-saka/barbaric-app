@@ -1,7 +1,9 @@
 import React, { memo } from 'react'
 import { StyleSheet, Text, View, Image } from 'react-native';
 import { Video } from 'expo-av';
+import { connect } from 'react-redux';
 
+import { setRowIndex } from '../redux/actions/pageListActions';
 import { IMAGE_TYPE } from '../constants';
 
 const styles = StyleSheet.create({
@@ -16,7 +18,8 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginVertical: 5,
         marginHorizontal: 10,
-        flexDirection: 'row'
+        width: 300,
+        alignItems: 'center'
     },
     image: {
         width: '100%',
@@ -37,7 +40,7 @@ const styles = StyleSheet.create({
         top: 0,
         left: 0,
         bottom: 0,
-        right: 0,
+        right: 0,        
       },
 });
 
@@ -58,133 +61,62 @@ class HomeCard extends React.PureComponent{
         this.setState({thumbLoaded: param})
     }
 
+
     render(){        
-        const {mainLoaded} = this.state;
-        const {item} = this.props;
-        let player = null;
-
-        console.log(``);
-        console.log(`thumbnailURL: ${item.thumbnailURL}`);
-        console.log(item?.fullVideoURL);
-        console.log(``);
-        console.log(``);
+        const {mainLoaded, thumbLoaded} = this.state;
+        const {item, focusIndex, index} = this.props;
+        const {fullImageURL, thumbnailURL} = item;
+        console.log(`index: ${index} focusIndex: ${focusIndex}`);
         
-        MainImage = ({item}) => {
-            return (
-                <View style={[styles.image, {display: 'flex'}]}>
-                    <Text style={[styles.image]} >{item.id}</Text>
-                    {item.type === IMAGE_TYPE ?
-                        <Image
-                            resizeMode={'contain'}
-                            source={{                    
-                                uri: item?.fullImageURL,
-                                cache: 'only-if-cached'
-                            }}
-                            fadeDuration={300}
-                            progressiveRenderingEnabled={true}
-                            style={[styles.image, {display: mainLoaded ? 'flex' : 'none'}]}         
-                            onLoad={() => {
-                                this.setMainLoaded(true)
-                            }}          
-                    /> : 
-                    <Video
-                        source={{uri : item?.fullVideoURL}}
-                        style={styles.backgroundVideo}
-                        controls={false}
-                        shouldPlay={false}
-                        useNativeControls
-                        resizeMode="contain" 
-                        onPlaybackStatusUpdate={status => {
-                            console.log(``);
-                            console.log(`status:`);
-                            console.log(status);
-                            console.log(``);
-
-                            // this.setMainLoaded(status.isLoaded)
-                        }}
-                        ref={(ref) => {
-                        player = ref
-                        }} />}
-                </View>
-                
-            )
-        }
-    
         ThumbImage = ({item}) => {
+            const _isFocussed = (index == 0 || index === (focusIndex -1));
+            const _imageURL = _isFocussed ?  fullImageURL : thumbnailURL ;
+
             return (
-                <View style={[styles.image]}>
-                    <Text  >{item.id}</Text>
+                <View style={[styles.container, {backgroundColor: _isFocussed ? '#dddeee' : '#fff'}]}>
+                    <Text >{`${index} : ${item.id} - FOCUS: ${_isFocussed ? 'Y' : 'N'}`}</Text>
                     <Image
                             defaultSource={require('../assets/logo-512.png')}
                             resizeMode={'contain'}
                             source={{                    
-                                uri: item?.thumbnailURL,
+                                uri: _imageURL,
                                 cache: 'only-if-cached'
                             }}
                             fadeDuration={300}
-                            progressiveRenderingEnabled={true}
-                            style={[styles.image, {display: mainLoaded ? 'none' : 'flex'}]}                                    
+                            progressiveRenderingEnabled={false}
+                            style={[styles.image]}             
+                            onLoad={() => {
+                                if(!thumbLoaded){
+                                    this.setThumbLoaded(true)
+                                }                                
+                            }}                        
                         />
                 </View>
             )
         }
 
+       
+
         return (
             <View style={styles.container}>
-                {/* {mainLoaded ? <MainImage item={item}/> : <ThumbImage item={item}/>  } */}
-                <MainImage item={item}/>
-                {/* <ThumbImage item={item}/>       */}
+                <ThumbImage  item={item} focusIndex={focusIndex} index={index} />                
             </View>
         )
     }
  }
 
-// const HomeCard = ({ item }) => {
-//     const [thumbLoaded, setThumbLoaded] = useState(false);
-//     const ThumbImage = ({item}) => {
-//         return (
-//             <Image
-//                 source={{                    
-//                     uri: item?.urls?.full,
-//                     cache: 'only-if-cached'
-//                 }}
-//                 style={[styles.image, {display: mainLoaded ? 'none' : 'flex'}]}
-//                 onLoadStart={() => {
-//                     setThumbLoaded(false)
-//                 }}
-//                 onLoad={() => {
-//                     setThumbLoaded(true)
-//                 }}
-//             />
-//         )
-//     }
 
-//     const [mainLoaded, setMainLoaded] = useState(false);
-//     const MainImage = ({item}) => {
-//         return (
-//             <Image
-//                 source={{                    
-//                     uri: item?.urls?.full,
-//                     cache: 'only-if-cached'
-//                 }}
-//                 style={[styles.image, {display: mainLoaded ? 'flex' : 'none'}]}
-//                 onLoadStart={() => {
-//                     setMainLoaded(false)
-//                 }}
-//                 onLoad={() => {
-//                     setMainLoaded(true)
-//                 }}
-//             />
-//         )
-//     }
-    
-//     return (
-//         <View style={styles.container}>
-//             <MainImage item={item}/>
-//             <ThumbImage item={item}/>      
-//         </View>
-//     )
-// }
+ function mapDispatchToProps(dispatch) {
+    return {
+        setRowIndex: params =>dispatch(setRowIndex(params)),
+    }
+}
 
-export default memo(HomeCard)
+function mapStateToProps(state) {
 
+    return {
+        focusIndex: state.pageListReducers.focusIndex,
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(memo(HomeCard))

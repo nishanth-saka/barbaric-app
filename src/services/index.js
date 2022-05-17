@@ -1,4 +1,5 @@
 import axios from "axios"
+import _ from 'lodash';
 
 import { IMAGE_TYPE, VIDEO_TYPE } from '../constants';
 
@@ -54,24 +55,28 @@ const getImagesFromAPI = (params) => {
 const getVideosFromAPI = (params) => {
     return new Promise((resolve, reject) => {
         try {
-            const URL = `https://pixabay.com/api/videos/?key=27440636-7a14393f2e1371b973e28caf8&q=yellow+flowers&pretty=true`;
+            const URL = `https://api.pexels.com/videos/popular?key=27440636-7a14393f2e1371b973e28caf8&pretty=true`;
             axios.get(URL)
             .then(function (response) {
-                const _data = response?.data?.hits ?? null;
+                const _data = response?.data?.videos ?? null;
 
                 if(_data){
                     const _arrayResponse = _data.map((item, index) => {
-                        const {id, userImageURL, videos} = item;
+                        const {id, image, video_files} = item;
                         
                         let _videoRowObject = new Object();
                         _videoRowObject.id = id;
-                        _videoRowObject.thumbnailURL = userImageURL;
-                        _videoRowObject.fullVideoURL = videos?.medium?.url ?? null;
+                        _videoRowObject.thumbnailURL = image;
+                        _videoRowObject.fullVideoURL = video_files[1]?.link ?? null;
                         _videoRowObject.type = VIDEO_TYPE;
 
+
                         console.log(``);
-                        console.log(`_videoRowObject: ${_videoRowObject.id}`);
+                        console.log(`getVideosFromAPI: _videoRowObject`);
                         console.log(_videoRowObject);
+                        console.log(``);
+                        console.log(``);
+                        console.log(``);
                         console.log(``);
                         console.log(``);
                         console.log(``);
@@ -80,7 +85,7 @@ const getVideosFromAPI = (params) => {
                         return _videoRowObject;                        
                     })     
                     
-                    resolve(_arrayResponse);
+                    resolve(_.slice(_arrayResponse, 0, 1));
                     return;
                 }
 
