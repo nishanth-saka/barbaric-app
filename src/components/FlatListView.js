@@ -20,6 +20,8 @@ const originalRenderItem = ({ item, index }) => {
 };
 const FlatListView = (props) => {
     const {pageList, pageNumber} = props;
+    const [isScrolling, setIsScrolling] = useState(true);
+    const [currentViewIndex, setViewIndex] = useState(0);
     
     let _flatListRef = null;
 
@@ -31,25 +33,15 @@ const FlatListView = (props) => {
     
     const onViewableItemsChanged = useRef(({ viewableItems, changed }) => {
         let _currentViewIndex = _.last(viewableItems)?.index;
+        
         if(_currentViewIndex){
-            setTimeout(() => {
-                props.setRowIndex(_currentViewIndex);
-            }, 300);
+            setViewIndex(_currentViewIndex);
         }
-        console.log("Visible items are", _.last(viewableItems)?.index);
-
     })
 
     const renderItem = useCallback(({item, index}) => {
         return originalRenderItem({item, index});
-    } , [pageList]);
-
-    const handleScrollView = (e) => {
-        let offset = e.nativeEvent.contentOffset.y;
-        // let viewSize = e.nativeEvent.layoutMeasurement;
-        let index = parseInt(offset / (ITEM_HEIGHT));   // your cell height                        
-        console.log(`handleScrollView: ${index}`);
-       }
+    } , [pageList, isScrolling]);
 
     return (
         <SafeAreaView style={FlatLisStyles.container}>
@@ -61,17 +53,29 @@ const FlatListView = (props) => {
                     removeClippedSubviews={true}
                     maxToRenderPerBatch={10}
                     initialNumToRender={3}
-                    keyExtractor={(item, index) => `${item.id}${index}`}
+                    keyExtractor={(item, index) => `${item?.id ?? ''}${index}`}
                     data={pageList}
                     renderItem={renderItem}
-                    nestedScrollEnabled={true}
-                    onEndReachedThreshold={0.5}
+                    onEndReachedThreshold={0.3}
                     disableIntervalMomentum={true}
                     onEndReached={() => {
                         props.getPageList({pageNumber : pageNumber + 1});
+                    }}     
+                    // decelerationRate={'fast'}     
+                    // disableIntervalMomentum={true}
+                    onScrollBeginDrag={() => {
+                        console.log(`onScrollBeginDrag..`);
+                        setIsScrolling(true)
                     }}
-                    
-                    onScrollEndDrag={handleScrollView}        
+                    onMomentumScrollBegin={() => {
+                        console.log(`onMomentumScrollBegin..`);
+                        setIsScrolling(true)
+                    }}
+                    onMomentumScrollEnd={() => {
+                        console.log(`onMomentumScrollEnd..`);
+                        setIsScrolling(false);
+                        props.setRowIndex(currentViewIndex);
+                        }}
                     />
         </SafeAreaView>
     )

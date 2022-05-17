@@ -29,11 +29,22 @@ const getImagesFromAPI = (params) => {
 
                     })
 
-                    resolve(_arrayResponse);
+                    // resolve(_arrayResponse);
+                    getVideosFromAPI(params)
+                    .then((res) => {
+                        const _resultArray = [...res, ..._.slice(_arrayResponse, 0, 5)];   
+
+                        resolve(_.sortBy(_resultArray, ['id']));
+                    })
+                    .catch(function (error) {
+                        console.log(``);
+                        console.log(`respageList Ex`);
+                        console.log(error);
+                        console.log(``);        
+                        reject(error);        
+                    }); 
                     return;
                 }
-
-                resolve(response?.data ?? [])
             })
             .catch(function (error) {
                 console.log(``);
@@ -55,41 +66,33 @@ const getImagesFromAPI = (params) => {
 const getVideosFromAPI = (params) => {
     return new Promise((resolve, reject) => {
         try {
-            const URL = `https://api.pexels.com/videos/popular?key=27440636-7a14393f2e1371b973e28caf8&pretty=true`;
+            //https://www.googleapis.com/youtube/v3/playlistItems?playlistId=${PLGaYlBJIOoa8lg4z5S3bJEDOTDHltsYQZ}&maxResults=${MAX_RESULT}&part=snippet%2CcontentDetails&key=${AIzaSyDKQzav3jNSTn3OdZhrOTEgFvaHgUrEjkg}
+            const URL = `https://www.googleapis.com/youtube/v3/playlistItems?playlistId=${'PLGaYlBJIOoa8lg4z5S3bJEDOTDHltsYQZ'}&maxResults=${5}&part=snippet%2CcontentDetails&key=${'AIzaSyDKQzav3jNSTn3OdZhrOTEgFvaHgUrEjkg'}`;
             axios.get(URL)
             .then(function (response) {
-                const _data = response?.data?.videos ?? null;
+              
+                const _data = response?.data?.items ?? null;
+
+                console.log(``);
+                console.log(`response response`);
+                console.log(URL);
+                console.log(``);   
 
                 if(_data){
                     const _arrayResponse = _data.map((item, index) => {
-                        const {id, image, video_files} = item;
-                        
+                        const {id, contentDetails} = item;
                         let _videoRowObject = new Object();
-                        _videoRowObject.id = id;
-                        _videoRowObject.thumbnailURL = image;
-                        _videoRowObject.fullVideoURL = video_files[1]?.link ?? null;
-                        _videoRowObject.type = VIDEO_TYPE;
-
-
-                        console.log(``);
-                        console.log(`getVideosFromAPI: _videoRowObject`);
-                        console.log(_videoRowObject);
-                        console.log(``);
-                        console.log(``);
-                        console.log(``);
-                        console.log(``);
-                        console.log(``);
-                        console.log(``);
-                        console.log(``);
+                        _videoRowObject.id = _.random(1000000);
+                        _videoRowObject.thumbnailURL = `https://img.youtube.com/vi/${contentDetails.videoId}/default.jpg`;
+                        _videoRowObject.fullVideoURL = contentDetails.videoId;
+                        _videoRowObject.type = VIDEO_TYPE;                        
 
                         return _videoRowObject;                        
                     })     
                     
-                    resolve(_.slice(_arrayResponse, 0, 1));
+                    resolve(_arrayResponse);
                     return;
                 }
-
-                resolve(_data);
             })
             .catch(function (error) {
                 console.log(``);

@@ -1,6 +1,10 @@
 import React, { memo } from 'react'
 import { StyleSheet, Text, View, Image } from 'react-native';
-import { Video } from 'expo-av';
+import WebView from 'react-native-webview';
+
+// import { Video } from 'expo-av';
+import YoutubePlayer from "react-native-youtube-iframe";
+
 import { connect } from 'react-redux';
 
 import { setRowIndex } from '../redux/actions/pageListActions';
@@ -50,7 +54,12 @@ class HomeCard extends React.PureComponent{
         this.state = {
             mainLoaded: false,
             thumbLoaded: false,
+            status: false,
         }
+    }
+
+    componentDidMount = () => {
+     
     }
 
     setMainLoaded(param){
@@ -65,8 +74,14 @@ class HomeCard extends React.PureComponent{
     render(){        
         const {mainLoaded, thumbLoaded} = this.state;
         const {item, focusIndex, index} = this.props;
-        const {fullImageURL, thumbnailURL} = item;
-        console.log(`index: ${index} focusIndex: ${focusIndex}`);
+        const {fullImageURL, fullVideoURL, thumbnailURL, type, id} = item;
+
+        if(!id){
+            return(
+                <></>
+            )
+        }
+        
         
         ThumbImage = ({item}) => {
             const _isFocussed = (index == 0 || index === (focusIndex -1));
@@ -74,7 +89,7 @@ class HomeCard extends React.PureComponent{
 
             return (
                 <View style={[styles.container, {backgroundColor: _isFocussed ? '#dddeee' : '#fff'}]}>
-                    <Text >{`${index} : ${item.id} - FOCUS: ${_isFocussed ? 'Y' : 'N'}`}</Text>
+                    <Text >{`${index} : ${id} - FOCUS: ${_isFocussed ? 'Y' : 'N'}`}</Text>
                     <Image
                             defaultSource={require('../assets/logo-512.png')}
                             resizeMode={'contain'}
@@ -90,7 +105,96 @@ class HomeCard extends React.PureComponent{
                                     this.setThumbLoaded(true)
                                 }                                
                             }}                        
-                        />
+                        />                       
+                </View>
+            )
+        }
+
+        VideoImage = ({item}) => {
+            const _isFocussed = (index == 0 || index === (focusIndex -1));
+            const _imageURL = _isFocussed ?  fullVideoURL : thumbnailURL ;
+            let _videPlayer = null;
+
+            console.log(`==`);
+            console.log(`focusIndex: ${focusIndex}`);                  
+            console.log(`==`);
+           
+
+            return (
+                <View style={[styles.container, {backgroundColor: _isFocussed ? '#dddeee' : '#fff'}]}>
+                    <Text >{`${index} : ${id} - FOCUS: ${_isFocussed ? 'Y' : 'N'}`}</Text>
+                    {!_isFocussed ? 
+                    <Image
+                        defaultSource={require('../assets/logo-512.png')}
+                        resizeMode={'contain'}
+                        source={{                    
+                            uri: thumbnailURL,
+                            cache: 'only-if-cached'
+                        }}
+                        fadeDuration={300}
+                        progressiveRenderingEnabled={false}
+                        style={[styles.image]}             
+                        onLoad={() => {
+                            if(!thumbLoaded){
+                                this.setThumbLoaded(true)
+                            }                                
+                        }}                        
+                />                 :
+                <YoutubePlayer
+                            style={{display: 'none'}}
+                            width={300}
+                            height={300}
+                            play={_isFocussed}
+                            thumbnail_url={thumbnailURL}
+                            videoId={fullVideoURL}
+                            onChangeState={(state) => {
+                                console.log(`==`);
+                                console.log(`index: ${index}`);            
+                                console.log(`fullVideoURL: ${fullVideoURL}`);                
+                                console.log(`state:`);                
+                                console.log(state);
+                                console.log(`==`);
+                            }}
+                    />
+                    
+                }
+
+                {/* <YoutubePlayer
+                            style={{display: 'none'}}
+                            width={300}
+                            height={300}
+                            play={_isFocussed}
+                            thumbnail_url={thumbnailURL}
+                            videoId={fullVideoURL}
+                            onChangeState={(state) => {
+                                console.log(`==`);
+                                console.log(`index: ${index}`);            
+                                console.log(`fullVideoURL: ${fullVideoURL}`);                
+                                console.log(`state:`);                
+                                console.log(state);
+                                console.log(`==`);
+                            }}
+                    /> */}
+
+                {/* <Image
+                    defaultSource={require('../assets/logo-512.png')}
+                    resizeMode={'contain'}
+                    source={{                    
+                        uri: thumbnailURL,
+                        cache: 'only-if-cached'
+                    }}
+                    fadeDuration={300}
+                    progressiveRenderingEnabled={false}
+                    style={[styles.image]}             
+                    onLoad={() => {
+                        if(!thumbLoaded){
+                            this.setThumbLoaded(true)
+                        }                                
+                    }}                        
+                />  */}
+
+                
+                        
                 </View>
             )
         }
@@ -99,7 +203,11 @@ class HomeCard extends React.PureComponent{
 
         return (
             <View style={styles.container}>
-                <ThumbImage  item={item} focusIndex={focusIndex} index={index} />                
+                {item.type === IMAGE_TYPE ? 
+                    <ThumbImage  item={item} focusIndex={focusIndex} index={index} />                
+                    : 
+                    <VideoImage  item={item} focusIndex={focusIndex} index={index} />
+                    }                
             </View>
         )
     }

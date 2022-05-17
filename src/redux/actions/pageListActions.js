@@ -32,7 +32,7 @@ export function getPageList(params) {
         try {
             dispatch(showLoaderAction(true));
 
-            getImagesFromAPI(params) //getVideosFromAPI(params)
+            getImagesFromAPI(params) //getVideosFromAPI | getImagesFromAPI
             .then((res) => {
                 dispatch(setPageList(res, params?.pageNumber));
                 dispatch(showLoaderAction(false));
