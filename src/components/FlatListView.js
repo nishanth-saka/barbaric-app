@@ -9,12 +9,13 @@ import FlatLisStyles from '../styles/index';
 import { getPageList, setRowIndex } from '../redux/actions/pageListActions';
 
 const ITEM_HEIGHT = 270;
-const originalRenderItem = ({ item, index }) => {      
+const originalRenderItem = ({ item, index, pageList }) => {      
     return (        
         <HomeCard 
             item={item} 
             key={`${index}`} 
             index={index}
+            nextItem={pageList[index + 1] ?? null}
             />
       )
 };
@@ -40,7 +41,7 @@ const FlatListView = (props) => {
     })
 
     const renderItem = useCallback(({item, index}) => {
-        return originalRenderItem({item, index});
+        return originalRenderItem({item, index, pageList});
     } , [pageList, isScrolling]);
 
     return (
@@ -58,6 +59,7 @@ const FlatListView = (props) => {
                     renderItem={renderItem}
                     onEndReachedThreshold={0.3}
                     disableIntervalMomentum={true}
+                    nestedScrollEnabled={true}
                     onEndReached={() => {
                         props.getPageList({pageNumber : pageNumber + 1});
                     }}     
@@ -74,7 +76,9 @@ const FlatListView = (props) => {
                     onMomentumScrollEnd={() => {
                         console.log(`onMomentumScrollEnd..`);
                         setIsScrolling(false);
-                        props.setRowIndex(currentViewIndex);
+                        setTimeout(() => {
+                            props.setRowIndex(currentViewIndex);
+                        }, 300);
                         }}
                     />
         </SafeAreaView>

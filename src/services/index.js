@@ -32,7 +32,7 @@ const getImagesFromAPI = (params) => {
                     // resolve(_arrayResponse);
                     getVideosFromAPI(params)
                     .then((res) => {
-                        const _resultArray = [...res, ..._.slice(_arrayResponse, 0, 5)];   
+                        const _resultArray = [..._.slice(_arrayResponse, _arrayResponse.length - 5, _arrayResponse.length), ...res];   
 
                         resolve(_.sortBy(_resultArray, ['id']));
                     })

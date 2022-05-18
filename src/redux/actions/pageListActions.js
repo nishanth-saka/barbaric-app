@@ -1,5 +1,5 @@
 
-import { GET_PAGE_LIST, SET_FOCUS_INDEX } from "../../constants";
+import { GET_PAGE_LIST, SET_FOCUS_INDEX, SHOW_SEARCH_GRID } from "../../constants";
 import showLoaderAction from "./showLoaderAction";
 import { getImagesFromAPI, getVideosFromAPI } from '../../services';
 
@@ -10,6 +10,20 @@ export function setRowIndex(focusIndex) {
                 type: SET_FOCUS_INDEX,
                 payload: {
                         focusIndex
+                    },
+                });
+        }, 300);
+    }
+
+}
+
+export function setSearchGrid(showSearchGrid) {
+    return async (dispatch) => {
+        setTimeout(() => {
+            dispatch({
+                type: SHOW_SEARCH_GRID,
+                payload: {
+                    showSearchGrid
                     },
                 });
         }, 300);

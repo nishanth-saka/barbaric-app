@@ -1,8 +1,7 @@
 import React, { memo } from 'react'
-import { StyleSheet, Text, View, Image } from 'react-native';
-import WebView from 'react-native-webview';
+import { StyleSheet, Text, View, Image, ScrollView, SafeAreaView } from 'react-native';
+import _ from 'lodash';
 
-// import { Video } from 'expo-av';
 import YoutubePlayer from "react-native-youtube-iframe";
 
 import { connect } from 'react-redux';
@@ -46,6 +45,27 @@ const styles = StyleSheet.create({
         bottom: 0,
         right: 0,        
       },
+      item: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 30,
+        margin: 2,
+        marginRight: 10,
+        borderColor: '#2a4944',
+        borderWidth: 1,
+        backgroundColor: '#d2f7f1',
+        width: 400,
+     },
+     addButton:{
+        width: 60,  
+        height: 60,   
+        borderRadius: 30,            
+        backgroundColor: '#ee6e73',                                    
+        position: 'absolute',                                          
+        bottom: 10,                                                    
+        right: 10,
+     }
 });
 
 class HomeCard extends React.PureComponent{
@@ -55,9 +75,23 @@ class HomeCard extends React.PureComponent{
             mainLoaded: false,
             thumbLoaded: false,
             status: false,
+            scrollViewRef: null,
+            data: [
+                { type: 'row', text: 'row 1'},
+                { type: 'row', text: 'row 2'},
+                { type: 'list', data: ['Apple', 'Banna', 'Pear', 'Orange', 'Grape', 'Pineapple']},
+                { type: 'row', text: 'row 3'},
+                { type: 'row', text: 'row 4'},
+                { type: 'row', text: 'row 5'},
+                { type: 'list', data: ['Bike', 'Car', 'Train', 'Plane', 'Boat', 'Rocket']},
+                { type: 'row', text: 'row 6'},
+                { type: 'row', text: 'row 7'},
+                { type: 'row', text: 'row 8'},
+              ]
         }
     }
 
+    
     componentDidMount = () => {
      
     }
@@ -70,27 +104,69 @@ class HomeCard extends React.PureComponent{
         this.setState({thumbLoaded: param})
     }
 
+    keyExtractor = (item, index) => {
+        const _index = `${index.toString()}${_.random(false)}`;
+        console.log(`_index: ${_index}`)
+        return _index;
+      }
 
-    render(){        
-        const {mainLoaded, thumbLoaded} = this.state;
-        const {item, focusIndex, index} = this.props;
+    renderHorizontalItem = ({item}) => {
+        return (
+          <View style={styles.horizontalItem} keyExtractor={this.keyExtractor}>
+            <Text  keyExtractor={this.keyExtractor}>{item}</Text>
+          </View>
+        );
+      }
+
+      
+    render(){                
+        const { thumbLoaded} = this.state;
+        const {item, focusIndex, index, nextItem} = this.props;
         const {fullImageURL, fullVideoURL, thumbnailURL, type, id} = item;
-
+                
         if(!id){
             return(
                 <></>
             )
         }
-        
-        
+
         ThumbImage = ({item}) => {
             const _isFocussed = (index == 0 || index === (focusIndex -1));
             const _imageURL = _isFocussed ?  fullImageURL : thumbnailURL ;
 
             return (
-                <View style={[styles.container, {backgroundColor: _isFocussed ? '#dddeee' : '#fff'}]}>
+                <SafeAreaView 
+                    style={[styles.container, {backgroundColor: _isFocussed ? '#dddeee' : '#fff'}]}>
                     <Text >{`${index} : ${id} - FOCUS: ${_isFocussed ? 'Y' : 'N'}`}</Text>
-                    <Image
+                    {!_isFocussed ? <Image
+                        keyExtractor={this.keyExtractor}
+                        defaultSource={require('../assets/logo-512.png')}
+                        resizeMode={'contain'}
+                        source={{                    
+                            uri: _imageURL,
+                            cache: 'only-if-cached'
+                        }}
+                        fadeDuration={300}
+                        progressiveRenderingEnabled={false}
+                        style={[styles.image, {height: 270}]}             
+                        onLoad={() => {
+                            if(!thumbLoaded){
+                                this.setThumbLoaded(true)
+                            }                                
+                        }}                        
+                    />  : 
+                    <ScrollView
+                            ref={(list) => {this.scrollViewRef = list}}
+                            horizontal={true}
+                            onLayout={() => {
+                                setTimeout(() => {
+                                    this.scrollViewRef?.scrollToEnd({ animated: true })
+                                }, 1400);
+                            }}
+
+                        >
+                        <Image
+                            keyExtractor={this.keyExtractor}
                             defaultSource={require('../assets/logo-512.png')}
                             resizeMode={'contain'}
                             source={{                    
@@ -99,14 +175,34 @@ class HomeCard extends React.PureComponent{
                             }}
                             fadeDuration={300}
                             progressiveRenderingEnabled={false}
-                            style={[styles.image]}             
+                            style={[styles.item, {height: 330}]}             
                             onLoad={() => {
                                 if(!thumbLoaded){
                                     this.setThumbLoaded(true)
                                 }                                
                             }}                        
-                        />                       
-                </View>
+                        />
+                        <Image
+                            keyExtractor={this.keyExtractor}
+                            defaultSource={require('../assets/logo-512.png')}
+                            resizeMode={'contain'}
+                            source={{                    
+                                uri: nextItem?.fullImageURL,
+                                cache: 'only-if-cached'
+                            }}
+                            fadeDuration={300}
+                            progressiveRenderingEnabled={false}
+                            style={[styles.item, {height: 330}]}             
+                            onLoad={() => {
+                                if(!thumbLoaded){
+                                    this.setThumbLoaded(true)
+                                }                                
+                            }}                        
+                        />
+                        </ScrollView>
+                }
+            
+                </SafeAreaView>
             )
         }
 
@@ -114,11 +210,6 @@ class HomeCard extends React.PureComponent{
             const _isFocussed = (index == 0 || index === (focusIndex -1));
             const _imageURL = _isFocussed ?  fullVideoURL : thumbnailURL ;
             let _videPlayer = null;
-
-            console.log(`==`);
-            console.log(`focusIndex: ${focusIndex}`);                  
-            console.log(`==`);
-           
 
             return (
                 <View style={[styles.container, {backgroundColor: _isFocussed ? '#dddeee' : '#fff'}]}>
@@ -133,17 +224,17 @@ class HomeCard extends React.PureComponent{
                         }}
                         fadeDuration={300}
                         progressiveRenderingEnabled={false}
-                        style={[styles.image]}             
+                        style={[styles.image, {display: !_isFocussed ? 'flex' : 'none'}]}             
                         onLoad={() => {
                             if(!thumbLoaded){
                                 this.setThumbLoaded(true)
                             }                                
                         }}                        
                 />                 :
-                <YoutubePlayer
-                            style={{display: 'none'}}
+                <View style={[styles.titleContainer]}>
+                    <YoutubePlayer
                             width={300}
-                            height={300}
+                            height={330}
                             play={_isFocussed}
                             thumbnail_url={thumbnailURL}
                             videoId={fullVideoURL}
@@ -156,45 +247,9 @@ class HomeCard extends React.PureComponent{
                                 console.log(`==`);
                             }}
                     />
+                </View>
                     
                 }
-
-                {/* <YoutubePlayer
-                            style={{display: 'none'}}
-                            width={300}
-                            height={300}
-                            play={_isFocussed}
-                            thumbnail_url={thumbnailURL}
-                            videoId={fullVideoURL}
-                            onChangeState={(state) => {
-                                console.log(`==`);
-                                console.log(`index: ${index}`);            
-                                console.log(`fullVideoURL: ${fullVideoURL}`);                
-                                console.log(`state:`);                
-                                console.log(state);
-                                console.log(`==`);
-                            }}
-                    /> */}
-
-                {/* <Image
-                    defaultSource={require('../assets/logo-512.png')}
-                    resizeMode={'contain'}
-                    source={{                    
-                        uri: thumbnailURL,
-                        cache: 'only-if-cached'
-                    }}
-                    fadeDuration={300}
-                    progressiveRenderingEnabled={false}
-                    style={[styles.image]}             
-                    onLoad={() => {
-                        if(!thumbLoaded){
-                            this.setThumbLoaded(true)
-                        }                                
-                    }}                        
-                />  */}
-
-                
-                        
                 </View>
             )
         }
@@ -204,7 +259,7 @@ class HomeCard extends React.PureComponent{
         return (
             <View style={styles.container}>
                 {item.type === IMAGE_TYPE ? 
-                    <ThumbImage  item={item} focusIndex={focusIndex} index={index} />                
+                    <ThumbImage  item={item} focusIndex={focusIndex} index={index}/>                       
                     : 
                     <VideoImage  item={item} focusIndex={focusIndex} index={index} />
                     }                
@@ -223,7 +278,7 @@ class HomeCard extends React.PureComponent{
 function mapStateToProps(state) {
 
     return {
-        focusIndex: state.pageListReducers.focusIndex,
+        focusIndex: state.pageListReducers.focusIndex
     }
 }
 

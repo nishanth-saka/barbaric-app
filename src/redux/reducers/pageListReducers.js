@@ -1,4 +1,4 @@
-import { GET_PAGE_LIST, SET_FOCUS_INDEX } from '../../constants';
+import { GET_PAGE_LIST, SET_FOCUS_INDEX, SHOW_SEARCH_GRID } from '../../constants';
 import { CURRENT_PAGE_NUMBER } from '../../constants';
 import _ from 'lodash';
 
@@ -6,6 +6,7 @@ const initialState = {
     pageList: [],
     pageNumber: CURRENT_PAGE_NUMBER,
     focusIndex: [],
+    showSearchGrid: false,
 };
 
 const pageListReducer = (state = initialState, action) => {
@@ -14,6 +15,12 @@ const pageListReducer = (state = initialState, action) => {
             return{
                 ...state,
                 focusIndex:  action?.payload?.focusIndex,
+            }
+
+        case SHOW_SEARCH_GRID:
+            return{
+                ...state,
+                showSearchGrid:  action?.payload?.showSearchGrid,
             }
 
         case GET_PAGE_LIST:

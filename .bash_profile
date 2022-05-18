@@ -1,0 +1,1 @@
+export JAVA_HOME=/Users/apple/Library/Java/JavaVirtualMachines/corretto-11.0.15/Contents/Home
